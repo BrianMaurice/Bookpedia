@@ -11,12 +11,11 @@ data class SearchedBookDto(
     @SerialName("cover_i") val coverAlternativeKey: Int? = null,
     @SerialName("author_key") val authorKeys: List<String>? = null,
     @SerialName("author_name") val authorNames: List<String>? = null,
-    @SerialName("cover_edition_key") val coverKey: List<String>? = null,
+    @SerialName("cover_edition_key") val coverKey: String? = null,
     @SerialName("ratings_average") val ratingsAverage: Double? = null,
     @SerialName("rating_count") val ratingCount: Int? = null,
     @SerialName("first_publish_year") val firstPublishYear: Int? = null,
     @SerialName("edition_count") val numEditions: Int? = null,
     @SerialName("num_of_pages_median") val numPages: Int? = null,
 
-    val description: String
 )

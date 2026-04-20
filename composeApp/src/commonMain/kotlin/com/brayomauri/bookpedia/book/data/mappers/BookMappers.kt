@@ -7,11 +7,11 @@ fun SearchedBookDto.toBook(): Book {
     return Book(
         id = id,
         title = title,
-        imageUrl = if (coverKey != null) "https://covers.openlibrary.org/b/id/${coverKey}-M.jpg"
-        else "https://covers.openlibrary.org/b/id/${coverKey}-M.jpg",
+        imageUrl = if (coverKey != null) "https://covers.openlibrary.org/b/olid/${coverKey}-L.jpg"
+        else "https://covers.openlibrary.org/b/id/${coverAlternativeKey}-L.jpg",
         //),
         authors = authorNames ?: emptyList(),
-        description = description,
+        description = null,
         languages = languages ?: emptyList(),
         firstPublishedYear = firstPublishYear.toString(),
         averageRating = ratingsAverage,

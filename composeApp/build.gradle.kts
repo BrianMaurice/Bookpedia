@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -34,11 +35,20 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.material)
             implementation(libs.koin.android)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
-            implementation(libs.coil.compose)
-            implementation(compose.material)
-            implementation(compose.materialIconsExtended)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            
+            // Coil 3 Dependencies
+            implementation(libs.coil.compose) // gradle sync
+            implementation(libs.coil.network.ktor3) // Added this to fix the ImageFetcher error
+            
+            implementation(libs.compose.material)
+            implementation(libs.compose.material.icons.extended)
             implementation(libs.koin.compose)
             implementation(libs.koin.core)
             implementation(libs.koin.compose.viewmodel)
@@ -51,14 +61,23 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.logging)
         }
+        
+        val iosMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
+        }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.okhttp)
         }
     }
 }

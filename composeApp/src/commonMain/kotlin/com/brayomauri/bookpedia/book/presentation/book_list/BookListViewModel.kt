@@ -8,13 +8,18 @@ import com.brayomauri.bookpedia.book.domain.Book
 import com.brayomauri.bookpedia.book.domain.BookRepository
 import com.brayomauri.bookpedia.core.domain.onError
 import com.brayomauri.bookpedia.core.domain.onSuccess
+import com.brayomauri.bookpedia.core.presentation.toUiText
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -23,7 +28,18 @@ class BookListViewModel(
 ): ViewModel() {
     private val cachedBooks = emptyList<Book>()
     private val _state = MutableStateFlow(BookListState())
-    val state = _state.asStateFlow()
+    private var searchJob: Job? = null
+    val state = _state
+        .onStart {
+            if(cachedBooks.isEmpty()){
+                observeSearchQuery()
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            _state.value
+        )
 
     fun onAction(action: BookListAction) {
         when (action) {
@@ -46,7 +62,7 @@ class BookListViewModel(
     }
 
     private fun observeSearchQuery() {
-        state
+        _state
             .map { it.searchQuery }
             .distinctUntilChanged()
             .debounce(500L)
@@ -61,18 +77,20 @@ class BookListViewModel(
                         }
                     }
                     query.length >= 2-> {
-                        searchBooks(query)
+                        searchJob?.cancel()
+                        searchJob = searchBooks(query)
                     }
                 }
             }
+            .launchIn(viewModelScope)
     }
 
-    private fun searchBooks(query: String) {
+    private fun searchBooks(query: String) = viewModelScope.launch {
         _state.update {
             it.copy(
                 isLoading = true
             )}
-            viewModelScope.launch {
+
                 bookRepository
                     .searchBooks(query)
                     .onSuccess { searchResults ->
@@ -86,9 +104,8 @@ class BookListViewModel(
                         _state.update { it.copy(
                             searchResults = emptyList(),
                             isLoading = false,
-                            errorMessage =
+                            errorMessage = error.toUiText()
                         ) }
                     }
-        }
     }
 }
