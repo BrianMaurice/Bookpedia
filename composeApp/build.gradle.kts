@@ -43,9 +43,12 @@ kotlin {
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             
+            // Navigation
+            implementation(libs.jetbrains.compose.navigation)
+
             // Coil 3 Dependencies
-            implementation(libs.coil.compose) // gradle sync
-            implementation(libs.coil.network.ktor3) // Added this to fix the ImageFetcher error
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.ktor3)
             
             implementation(libs.compose.material)
             implementation(libs.compose.material.icons.extended)
