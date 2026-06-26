@@ -11,6 +11,7 @@ import com.brayomauri.bookpedia.core.domain.onSuccess
 import com.brayomauri.bookpedia.core.presentation.toUiText
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.debounce
@@ -29,11 +30,13 @@ class BookListViewModel(
     private val cachedBooks = emptyList<Book>()
     private val _state = MutableStateFlow(BookListState())
     private var searchJob: Job? = null
+    private var observeFavoriteJob: Job? = null
     val state = _state
         .onStart {
             if(cachedBooks.isEmpty()){
                 observeSearchQuery()
             }
+            observeFavoriteBooks()
         }
         .stateIn(
             viewModelScope,
@@ -59,6 +62,19 @@ class BookListViewModel(
                 }
             }
         }
+    }
+
+    private fun observeFavoriteBooks() {
+        observeFavoriteJob?.cancel()
+        observeFavoriteJob = bookRepository
+            .getFavoriteBooks()
+            .onEach { favoriteBooks ->
+                _state.update {
+                    it.copy(
+                        favoriteBooks = favoriteBooks
+                    )}
+                }
+            .launchIn(viewModelScope)
     }
 
     private fun observeSearchQuery() {
